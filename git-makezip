@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+#
+# Create a ZIP archive of the current repo's master branch.
+#
+# @author Morgan Estes <morgan.estes@gmail.com>
+readonly E_DID_NOTHING=0
+readonly E_SUCCESS=1
+readonly E_FAILURE=2
+
+main() {
+  if ! makezip; then
+    err "There was a problem creating ${zip_filename}."
+    exit "${E_DID_NOTHING}"
+  else
+    echo "Archive file ${zip_filename} created successfully."
+    exit "${E_SUCCESS}"
+  fi
+}
+
+#########################
+# Creates a ZIP archive of the master branch at its current state.
+#########################
+makezip() {
+  local is_branch_clean
+  local current_branch
+  local has_stash=false
+  local success=false
+
+  is_branch_clean="$(git status --porcelain)"
+  current_branch="$(git rev-parse --abbrev-ref HEAD)"
+  filename_base="$(git describe master)"
+  zip_filename="${filename_base}.zip"
+
+  if [[ -n "${is_branch_clean}" ]]; then
+    has_stash=true
+    echo 'Stashing changes...'
+    git stash save -a -q
+  fi
+
+  # Switch to master, create the ZIP, then go back to where we were.
+  switch_branch 'master'
+
+  if create_archive; then
+    success=true
+  fi
+
+  switch_branch "${current_branch}"
+
+  if [ "${has_stash}" = true ]; then
+    git stash apply
+  fi
+
+  if [ "${success}" = true ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+switch_branch() {
+  local branch="$1"
+
+  git checkout "${branch}" -q
+}
+
+create_archive() {
+  local success=false
+
+  git archive master --prefix="${filename_base}/" --format=zip > "${zip_filename}"
+
+  if [[ -e "${zip_filename}" ]]; then
+    success=true
+  fi
+
+  if [ "${success}" = true ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+err() {
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
+}
+
+main "$@"
