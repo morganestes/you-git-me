@@ -1,3 +1,8 @@
 #!/usr/bin/env bash
+#
+# Removes files from the repo without deleting from disk. Run after you've committed
+# files that you now want to ignore (and after they've been added to .gitignore).
+#
+# See http://stackoverflow.com/questions/7527982/applying-gitignore-to-committed-files
 
 git ls-files -ci --exclude-standard -z | xargs -0 git rm --cached
