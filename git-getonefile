@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# Checkout a single file from the remote.
+#
+# Useful for when you've made a lot of changes that you want to blow
+# away completely by overwriting your local copy with the remote's.
+# This only works if you already have a local copy of the repo.
+#
+# Usage: git getonefile <filename>
+
+git checkout -- "$1"
