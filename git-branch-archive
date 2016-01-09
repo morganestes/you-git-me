@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# "Archive" the current branch
+#
+# Once a feature branch has been code reviewed, approved, and merged,
+# tag it in it's current state and save it for later.
+#
+
+readonly local_branch=$(git whereami)
+readonly archive_branch="archive/${local_branch}"
+upstream="origin" || "$1"
+
+main() {
+	archive_tag
+	remove_archived_branch
+}
+
+archive_tag() {
+	git tag "${archive_branch}"
+	git push "${upstream}" "${archive_branch}"
+}
+
+remove_archived_branch() {
+	git checkout master
+
+	#local
+	git branch -d "${local_branch}"
+
+	#upstream
+	git push origin --delete "${local_branch}"
+}
+
+main "$1"
