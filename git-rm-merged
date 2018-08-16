@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#
+# Removes branches that have already been merged into master.
+#
+# See https://stackoverflow.com/a/6127884
+#
+upstream="origin" || "$1"
+flag="-d"
+
+# If a remote is passed, remove remote branches.
+if [[ -n "${1+set}" ]]; then
+	flag="-D"
+fi
+git checkout master
+git branch --merged | egrep -v "(^\*|master|staging|develop)" | xargs git branch "${flag}"
+git remote prune "$upstream"
