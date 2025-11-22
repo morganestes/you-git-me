@@ -11,14 +11,26 @@ readonly local_branch
 readonly archive_branch="archive/${local_branch}"
 upstream="${1:-origin}"
 
+# Parse --dry-run flag if present
+DRY=0
+if [[ "$1" = "--dry-run" || "$1" = "-n" ]]; then
+	DRY=1
+	shift
+fi
+
 main() {
 	archive_tag
 	remove_archived_branch
 }
 
 archive_tag() {
-	git tag "${archive_branch}"
-	git push "${upstream}" "${archive_branch}"
+	if [ "${DRY:-0}" -eq 1 ]; then
+		echo "DRY RUN: git tag \"${archive_branch}\""
+		echo "DRY RUN: git push \"${upstream}\" \"${archive_branch}\""
+	else
+		git tag "${archive_branch}"
+		git push "${upstream}" "${archive_branch}"
+	fi
 }
 
 remove_archived_branch() {
