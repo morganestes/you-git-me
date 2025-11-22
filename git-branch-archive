@@ -22,13 +22,20 @@ archive_tag() {
 }
 
 remove_archived_branch() {
-	git checkout master
 
-	#local
-	git branch -d "${local_branch}"
+	if [ "${DRY:-0}" -eq 1 ]; then
+		echo "DRY RUN: git checkout master"
+		echo "DRY RUN: git branch -d \"${local_branch}\""
+		echo "DRY RUN: git push origin --delete \"${local_branch}\""
+	else
+		git checkout master
 
-	#upstream
-	git push origin --delete "${local_branch}"
+		#local
+		git branch -d "${local_branch}"
+
+		#upstream
+		git push origin --delete "${local_branch}"
+	fi
 }
 
 help() {
@@ -38,6 +45,7 @@ Tag the current branch as archived and delete it locally and remotely.
 If no upstream is specified, 'origin' is used.
 EOF
 	# completions are provided centrally in `completions/`
+  --dry-run, -n     Print the operations that would be performed, do not run them
 }
 
 _git_branch_archive() {

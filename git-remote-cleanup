@@ -10,6 +10,7 @@ Remove all remotes except `origin` from the repository.
 
 Options:
   -h, --help       Show this help and exit
+	--dry-run, -n    Print the remotes that would be removed, do not modify remotes
 	# completions are provided centrally in `completions/`
 
 EOF
@@ -28,4 +29,26 @@ if ! command -v git >/dev/null 2>&1; then
 	exit 1
 fi
 
-git remote | grep -v '^origin$' | xargs -r -I% git remote rm %
+# Parse dry-run
+DRY=0
+if [[ "$1" = "--dry-run" || "$1" = "-n" ]]; then
+	DRY=1
+fi
+
+remotes_to_remove=$(git remote | grep -v '^origin$' || true)
+if [ "${DRY}" -eq 1 ]; then
+	if [ -z "${remotes_to_remove}" ]; then
+		echo "No remotes to remove."
+	else
+		echo "DRY RUN: would remove the following remotes:"
+		echo "${remotes_to_remove}"
+	fi
+else
+	if [ -n "${remotes_to_remove}" ]; then
+		echo "Removing remotes:"
+		echo "${remotes_to_remove}"
+		echo "${remotes_to_remove}" | xargs -r -n1 git remote rm
+	else
+		echo "No remotes to remove."
+	fi
+fi

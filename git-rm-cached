@@ -10,6 +10,7 @@ Remove files from the index (git rm --cached) for entries matched by .gitignore.
 
 Options:
   -h, --help       Show this help and exit
+	--dry-run, -n     Print the files that would be removed from the index, do not modify the index
 	# completions are provided centrally in `completions/`
 
 EOF
@@ -20,6 +21,17 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 	exit 0
 fi
 
+# Parse dry-run
+DRY=0
+if [[ "$1" = "--dry-run" || "$1" = "-n" ]]; then
+	DRY=1
+	shift
+fi
+
 # Main behavior: removes files from index but not disk
-git ls-files -ci --exclude-standard -z | xargs -0 git rm --cached
+if [ "${DRY}" -eq 1 ]; then
+	git ls-files -ci --exclude-standard
+else
+	git ls-files -ci --exclude-standard -z | xargs -0 git rm --cached
+fi
 
