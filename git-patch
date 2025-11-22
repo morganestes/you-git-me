@@ -1,11 +1,34 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-CURRENT_BRANCH=$(git branch &>/dev/null; if [ $? -eq 0 ]; then echo "$(git branch | grep '^*' |sed s/\*\ //)"; fi)
-CURRENT_DIR=$(basename $(pwd))
+set -e
+
+help() {
+	cat <<'EOF'
+Usage: git-patch
+
+Create a patch file for the current branch against master and save it to
+${HOME}/Documents/Patches/<repo>/. The output filename is <current-branch>.diff
+
+Options:
+  -h, --help       Show this help and exit
+	# completions are provided centrally in `completions/`
+
+EOF
+}
+
+# (completions centralized in completions/)
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+	help
+	exit 0
+fi
+
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+CURRENT_DIR=$(basename "$(pwd)")
 
 PATCH_DIR="${HOME}/Documents/Patches/${CURRENT_DIR}"
 
-mkdir -p ${PATCH_DIR}
+mkdir -p "${PATCH_DIR}"
 
-git format-patch master --stdout > ${PATCH_DIR}/${CURRENT_BRANCH}.diff
+git format-patch master --stdout > "${PATCH_DIR}/${CURRENT_BRANCH}.diff"
 

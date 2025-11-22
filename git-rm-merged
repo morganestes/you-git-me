@@ -1,16 +1,54 @@
 #!/usr/bin/env bash
-#
 # Removes branches that have already been merged into master.
-#
 # See https://stackoverflow.com/a/6127884
-#
-upstream="origin" || "$1"
+
+set -e
+
+help() {
+	cat <<'EOF'
+Usage: git-rm-merged [--remote]
+
+Remove local branches that have already been merged into master. If `--remote`
+is passed, aggressively delete branches (force) and prune the remote.
+
+Options:
+  --remote          Operate as if a remote was passed (use -D)
+  -h, --help        Show this help and exit
+	--dry-run, -n     Print the branches that would be deleted, do not delete
+
+EOF
+}
+
+# (completions centralized in completions/)
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+	help
+	exit 0
+fi
+
+DRY=0
+if [[ "$1" = "--dry-run" || "$1" = "-n" ]]; then
+	DRY=1
+	shift
+fi
+
+upstream="origin"
 flag="-d"
 
-# If a remote is passed, remove remote branches.
-if [[ -n "${1+set}" ]]; then
+# If `--remote` passed, use force delete flag
+if [[ "$1" = "--remote" ]]; then
 	flag="-D"
 fi
-git checkout master
-git branch --merged | egrep -v "(^\*|master|staging|develop)" | xargs git branch "${flag}"
-git remote prune "$upstream"
+
+# Gather merged branches
+branches=$(git branch --merged | egrep -v "(^\\*|master|staging|develop)") || true
+
+if [ "${DRY}" -eq 1 ]; then
+	echo "DRY RUN: would delete the following branches (with flag ${flag}):"
+	echo "${branches}" | sed '/^[[:space:]]*$/d'
+else
+	git checkout master
+	echo "Deleting merged branches..."
+	echo "${branches}" | xargs -r git branch "${flag}"
+	git remote prune "${upstream}"
+fi

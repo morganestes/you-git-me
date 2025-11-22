@@ -1,12 +1,68 @@
 #!/usr/bin/env bash
 
-#git branch -m master main
-#git push -u origin main
+set -e
 
-git checkout master
-git branch -m master main
-git fetch
-git branch --unset-upstream
-git branch -u origin/main
-git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
-git push -u origin main
+main() {
+	# Main behavior: rename a branch (default: remote HEAD branch) to `main` and update tracking
+	default_branch="$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')"
+	old_branch="${1:-$default_branch}"
+	new_branch="${2:-main}"
+
+	if [ "${DRY:-0}" -eq 1 ]; then
+		echo "DRY RUN: git fetch origin"
+		echo "DRY RUN: git checkout \"${old_branch}\""
+		echo "DRY RUN: git branch -m \"${old_branch}\" \"${new_branch}\""
+		echo "DRY RUN: git push origin :\"${old_branch}\" \"${new_branch}\""
+		echo "DRY RUN: git push -u origin \"${new_branch}\""
+		echo "DRY RUN: git remote set-head origin -a"
+	else
+		git fetch origin
+		git checkout "${old_branch}"
+		git branch -m "${old_branch}" "${new_branch}"
+		# delete old branch on remote and push new branch, then set upstream and remote HEAD
+		git push origin :"${old_branch}" "${new_branch}"
+		git push -u origin "${new_branch}"
+		git remote set-head origin -a
+	fi
+}
+
+help() {
+	cat <<'EOF'
+Usage: git-mainer [OLD_BRANCH] [NEW_BRANCH]
+
+Rename a branch on the local repo and update the remote tracking/head.
+
+Arguments:
+  OLD_BRANCH   Branch to rename (default: origin's HEAD branch, often 'master')
+  NEW_BRANCH   New branch name (default: 'main')
+
+Options:
+  -h, --help       Show this help and exit
+	--dry-run, -n    Print the commands that would be run, but do not execute
+
+Examples:
+  git-mainer                # rename origin's HEAD (e.g. master) to main
+  git-mainer develop trunk  # explicitly rename develop to trunk
+
+EOF
+}
+
+# CLI entry: parse flags and run main
+
+DRY=0
+while [[ "$1" == --* || "$1" == -?* ]]; do
+	case "$1" in
+		--dry-run|-n)
+			DRY=1; shift ;;
+		-h|--help)
+			help; exit 0 ;;
+		*)
+			break ;;
+	esac
+done
+
+# If script is sourced with no args, fall through to main when executed explicitly
+MAIN_ARGS=("$@")
+main "${MAIN_ARGS[@]}"
+
+

@@ -17,6 +17,27 @@ main() {
   fi
 }
 
+help() {
+  cat <<'EOF'
+Usage: git-makezip
+
+Create a ZIP archive of the `master` branch at its current state. Preserves
+local branch and stash state while creating the archive.
+
+Options:
+  -h, --help       Show this help and exit
+  # completions are provided centrally in `completions/`
+
+EOF
+}
+
+    
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  help
+  exit 0
+fi
+
 #########################
 # Creates a ZIP archive of the master branch at its current state.
 #########################
@@ -38,13 +59,13 @@ makezip() {
   fi
 
   # Switch to master, create the ZIP, then go back to where we were.
-  switch_branch 'master'
+  git switch 'master'
 
   if create_archive; then
     success=true
   fi
 
-  switch_branch "${current_branch}"
+  git switch "${current_branch}"
 
   if [ "${has_stash}" = true ]; then
     git stash apply
@@ -57,11 +78,6 @@ makezip() {
   fi
 }
 
-switch_branch() {
-  local branch="$1"
-
-  git checkout "${branch}" -q
-}
 
 create_archive() {
   local success=false
@@ -80,7 +96,7 @@ create_archive() {
 }
 
 err() {
-    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
+    printf '[%s]: %s\n' "$(date +'%Y-%m-%dT%H:%M:%S%z')" "$*" >&2
 }
 
 main "$@"

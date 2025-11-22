@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -e
+
+help() {
+	cat <<'EOF'
+Usage: git-remote-cleanup
+
+Remove all remotes except `origin` from the repository.
+
+Options:
+  -h, --help       Show this help and exit
+	# completions are provided centrally in `completions/`
+
+EOF
+}
+
+# (completions centralized in completions/)
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+	help
+	exit 0
+fi
+
+# Remove all remotes except origin (defensive: skip if no git)
+if ! command -v git >/dev/null 2>&1; then
+	echo "git not available" >&2
+	exit 1
+fi
+
+git remote | grep -v '^origin$' | xargs -r -I% git remote rm %

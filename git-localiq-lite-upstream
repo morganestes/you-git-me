@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+#
+# Prep a Pantheon multidev for testing a Lite Sites feature
+#
+
+readonly LITE_UPSTREAM_REPO="gh:reachlocal/websites-lite-upstream.git"
+PR_BRANCH=""
+PANTHEON_SITE=""
+
+function main() {
+
+    while [ -n "$1" ]; do
+        case $1 in
+            --site|-s)
+                shift
+                PANTHEON_SITE="$1"
+                echo "Using Pantheon site named: $PANTHEON_SITE"
+                shift
+            ;;
+            --branch|-b)
+                shift
+                PR_BRANCH="$1"
+                echo "Using upstream branch named: $PR_BRANCH"
+            ;;
+            --help|-h)
+                shift
+                show_usage
+            ;;
+            *)
+                shift
+                printf "Invalid parameter entered and script cannot continue.\nPlease check and try again.\n"
+                show_usage
+            ;;
+        esac
+        shift
+    done
+
+    if [[ -z "${PANTHEON_SITE}" || -z "${PR_BRANCH}" ]]; then
+	printf "One or more parameters are missing.\n"
+        printf "Script requires both a site name and PR branch for the multidev.\n\n"
+        show_usage
+    fi
+}
+
+function show_usage() {
+    printf "Usage: %s [options [parameters]]\n" "$0"
+    printf "\n"
+    printf "Options:\n"
+    printf " -s|--site, Pantheon site for testing in multidev (e.g. lite-brooklyn)\n"
+    printf " -b|--branch, PR branch name (e.g. pr-1234-pro)\n"
+    printf " -h|--help, Print help\n"
+
+    return 0
+}
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_usage
+    exit 0
+fi
+
+function check_orchestration_for_branch() {
+
+    return 0 # 0 is good, 1 is bad
+}
+
+function get_the_multidev_branch() {
+    git clone "$LITE_UPSTREAM_REPO" --branch "$PR_BRANCH" --single-branch
+}
+
+function do_the_terminus_thing() {
+    terminus multidev:create:branch "$PANTHEON_SITE" "$PR_BRANCH"
+}
+
+main "$@"

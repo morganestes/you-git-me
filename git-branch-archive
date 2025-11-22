@@ -6,9 +6,10 @@
 # tag it in it's current state and save it for later.
 #
 
-readonly local_branch=$(git whereami)
+local_branch="$(git whereami)"
+readonly local_branch
 readonly archive_branch="archive/${local_branch}"
-upstream="origin" || "$1"
+upstream="${1:-origin}"
 
 main() {
 	archive_tag
@@ -30,4 +31,22 @@ remove_archived_branch() {
 	git push origin --delete "${local_branch}"
 }
 
-main "$1"
+help() {
+	cat <<EOF
+Usage: git branch-archive [upstream]
+Tag the current branch as archived and delete it locally and remotely.
+If no upstream is specified, 'origin' is used.
+EOF
+	# completions are provided centrally in `completions/`
+}
+
+_git_branch_archive() {
+	if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+		help
+		exit 0
+	fi
+
+	main "$1"
+}
+
+_git_branch_archive "$@"

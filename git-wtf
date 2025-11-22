@@ -1,5 +1,21 @@
 #!/usr/bin/env ruby
 
+# Minimal CLI helpers: support --help and --completion before doing work.
+if ARGV.include?('--help') || ARGV.include?('-h')
+  puts <<~HELP
+    Usage: git-wtf
+
+    Show summarized branch status for a local repository. Readme: top-level README.md
+
+    Options:
+      -h, --help       Show this help and exit
+        # completions are provided centrally in `completions/`
+  HELP
+  exit 0
+end
+
+
+
 $debug = false
 
 require 'yaml'

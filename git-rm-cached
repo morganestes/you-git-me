@@ -1,8 +1,25 @@
 #!/usr/bin/env bash
-#
-# Removes files from the repo without deleting from disk. Run after you've committed
-# files that you now want to ignore (and after they've been added to .gitignore).
-#
-# See http://stackoverflow.com/questions/7527982/applying-gitignore-to-committed-files
 
+set -e
+
+help() {
+	cat <<'EOF'
+Usage: git-rm-cached
+
+Remove files from the index (git rm --cached) for entries matched by .gitignore.
+
+Options:
+  -h, --help       Show this help and exit
+	# completions are provided centrally in `completions/`
+
+EOF
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+	help
+	exit 0
+fi
+
+# Main behavior: removes files from index but not disk
 git ls-files -ci --exclude-standard -z | xargs -0 git rm --cached
+

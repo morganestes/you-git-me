@@ -1,3 +1,25 @@
 #!/usr/bin/env bash
 
+set -e
+
+help() {
+	cat <<'EOF'
+Usage: git-whereami
+
+Print the current branch name (abbrev ref).
+
+Options:
+  -h, --help       Show this help and exit
+	# completions are provided centrally in `completions/`
+
+EOF
+}
+
+# (completions centralized in completions/)
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+	help
+	exit 0
+fi
+
 git rev-parse --abbrev-ref HEAD

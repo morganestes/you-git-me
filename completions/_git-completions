@@ -1,0 +1,97 @@
+#!/usr/bin/env zsh
+# Zsh completions for you-git-me helper scripts
+# Place this file in a directory on your $fpath (e.g. ~/.zfunc) and run:
+#   autoload -Uz _git-completions; compdef _git-completions git-getonefile git-diffmod git-mainer git-branch-archive git-localiq-lite-upstream git-makezip git-patch git-remote-cleanup git-rm-cached git-rm-merged git-whereami git-wtf
+
+_ygm_refs() {
+  if (( $+commands[git] )); then
+    git for-each-ref --format='%(refname:short)' refs/heads refs/tags refs/remotes 2>/dev/null | sed 's#^remotes/##' | sort -u
+  fi
+}
+
+_ygm_files() {
+  if (( $+commands[git] )); then
+    git ls-files 2>/dev/null
+  fi
+}
+
+_git-completions() {
+  local cmd=${words[1]}
+  local cur=${words[CURRENT]}
+
+  case "$cmd" in
+    git-getonefile)
+      local -a opts files
+      opts=(--help -h --completion)
+      files=( ${(f)$( _ygm_files )} )
+      if [[ $cur == -* ]]; then
+        compadd -- ${opts[@]}
+      else
+        compadd -- ${files[@]}
+      fi
+      ;;
+
+    git-diffmod)
+      local -a opts refs
+      opts=(--help -h --completion)
+      refs=( ${(f)$( _ygm_refs )} )
+      if [[ $cur == -* ]]; then
+        compadd -- ${opts[@]}
+      else
+        compadd -- ${refs[@]}
+      fi
+      ;;
+
+    git-mainer)
+      local -a opts candidates
+      opts=(--help -h --completion)
+      candidates=(master main ${(f)$( _ygm_refs )})
+      if [[ $cur == -* ]]; then
+        compadd -- ${opts[@]}
+      else
+        compadd -- ${candidates[@]}
+      fi
+      ;;
+
+    git-branch-archive)
+      local -a opts remotes
+      opts=(--help -h)
+      remotes=( ${(f)$(git remote 2>/dev/null)} )
+      if [[ $cur == -* ]]; then
+        compadd -- ${opts[@]}
+      else
+        compadd -- ${remotes[@]}
+      fi
+      ;;
+
+    git-localiq-lite-upstream)
+      local -a opts
+      opts=(--site -s --branch -b --help -h)
+      if [[ $cur == -* ]]; then
+        compadd -- ${opts[@]}
+      fi
+      ;;
+
+    git-makezip|git-patch|git-remote-cleanup|git-rm-cached|git-whereami|git-wtf)
+      local -a opts
+      opts=(--help -h --completion)
+      if [[ $cur == -* ]]; then
+        compadd -- ${opts[@]}
+      fi
+      ;;
+
+    git-rm-merged)
+      local -a opts
+      opts=(--remote --help -h --completion)
+      if [[ $cur == -* ]]; then
+        compadd -- ${opts[@]}
+      fi
+      ;;
+
+    *)
+      return 1
+      ;;
+  esac
+}
+
+compdef _git-completions git-getonefile git-diffmod git-mainer git-branch-archive git-localiq-lite-upstream git-makezip git-patch git-remote-cleanup git-rm-cached git-rm-merged git-whereami git-wtf

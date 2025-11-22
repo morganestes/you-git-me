@@ -1,4 +1,41 @@
 #!/usr/bin/env bash
 
+set -e
+
+help() {
+	cat <<'EOF'
+Usage: git-diffmod <commit1> <commit2>
+
+Show a difftool only for files that were modified/created/renamed/copied (not deleted).
+
+Arguments:
+  commit1   Left-hand ref (e.g. HEAD~1, master, origin/main)
+  commit2   Right-hand ref (e.g. HEAD, feature-branch)
+
+Options:
+  -h, --help       Show this help and exit
+	# completions are provided centrally in `completions/`
+
+Examples:
+  git-diffmod HEAD~1 HEAD
+  git-diffmod master origin/master
+
+EOF
+}
+
+# CLI entry: handle --help
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+	help
+	exit 0
+fi
+
+# Require two arguments (preserve original behavior). Show help when missing.
+if [ "$#" -lt 2 ]; then
+	echo "Error: two refs required. See --help." >&2
+	help
+	exit 2
+fi
+
 # Get a diff for only modified files
-git difftool -C $1 $2 --diff-filter=CMRTUXB
+git difftool -C "$1" "$2" --diff-filter=CMRTUXB

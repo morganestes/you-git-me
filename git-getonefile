@@ -1,11 +1,33 @@
 #!/usr/bin/env bash
-#
-# Checkout a single file from the remote.
-#
-# Useful for when you've made a lot of changes that you want to blow
-# away completely by overwriting your local copy with the remote's.
-# This only works if you already have a local copy of the repo.
-#
-# Usage: git getonefile <filename>
+
+set -e
+
+help() {
+	cat <<'EOF'
+Usage: git-getonefile <filename>
+
+Checkout a single file from the index/HEAD, overwriting local changes.
+
+Arguments:
+  filename   Path to the file to restore from HEAD
+
+Options:
+  -h, --help       Show this help and exit
+	# completions are provided centrally in `completions/`
+
+EOF
+}
+
+    
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+	help
+	exit 0
+fi
+
+if [ -z "$1" ]; then
+	echo "Error: filename required. See --help." >&2
+	exit 2
+fi
 
 git checkout -- "$1"
